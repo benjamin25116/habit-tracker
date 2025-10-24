@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Ben's Habit Tracker (Final Heatmap Modal)</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+      :root {
+        --earth-bg: #e7e3dc;
+        --earth-card: #f6f2ec;
+        --earth-stroke: #b7a69e;
+        --earth-dark: #453927;
+        --earth-light: #ecebe3;
+        --earth-success: #68886a;
+        --earth-warn: #d8a456;
+        --earth-gray: #dad7cd;
+        --earth-miss: #efb1a1;
+        --earth-error: #c77c7c;
+      }
+      body {
+        background: var(--earth-bg);
+        font-family: Segoe UI, sans-serif;
+        margin: 0;
+      }
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: var(--earth-card);
+        border-radius: 18px;
+        padding: 20px 8px 56px 8px;
+        box-shadow: 0 8px 36px rgba(191, 166, 143, 0.08);
+      }
+      h1 {
+        color: var(--earth-dark);
+        margin-bottom: 10px;
+        text-align: center;
+      }
+      .date-nav {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 10px;
+        margin: 20px 0 16px 0;
+        padding: 8px 0;
+        background: var(--earth-light);
+        border-radius: 10px;
+      }
+      .date-nav button,
+      .date-nav .today-btn {
+        background: var(--earth-stroke);
+        color: white;
+        border: none;
+        padding: 8px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s;
+      }
+      .date-nav button:hover,
+      .date-nav .today-btn:hover {
+        background: var(--earth-dark);
+        transform: translateY(-2px);
+      }
+      .date-nav .today-btn {
+        background: var(--earth-success);
+        color: white;
+        margin-left: 8px;
+      }
+      .current-date {
+        font-size: 18px;
+        font-weight: bold;
+        color: var(--earth-dark);
+        min-width: 160px;
+        text-align: center;
+      }
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 12px;
+        margin: 16px 0;
+      }
+      .stat-card {
+        background: var(--earth-light);
+        color: var(--earth-dark);
+        padding: 12px 5px;
+        border-radius: 8px;
+        text-align: center;
+        box-shadow: 0 2px 8px rgba(191, 166, 143, 0.12);
+      }
+      .stat-card h3 {
+        font-size: 13px;
+        opacity: 0.88;
+        margin-bottom: 2px;
+      }
+      .stat-card .value {
+        font-size: 28px;
+        font-weight: bold;
+      }
+      .habits-list {
+        margin-top: 16px;
+      }
+      .habit-row {
+        display: flex;
+        align-items: stretch;
+        width: 100%;
+      }
+      .health-gauge-col {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 65px;
+        margin-right: 6px;
+        padding-left: 16px;
+        padding-right: 20px;
+      }
+      .health-gauge {
+        display: flex;
+        gap: 2px;
+      }
+      .health-bar {
+        width: 10px;
+        height: 16px;
+        border-radius: 2px;
+        background: var(--earth-gray);
+        transition: background 0.2s;
+        margin: 0;
+      }
+      .bar-red {
+        background: var(--earth-error) !important;
+      }
+      .bar-orange {
+        background: var(--earth-warn) !important;
+      }
+      .bar-green {
+        background: var(--earth-success) !important;
+      }
+
+      .bar-gray {
+        background: var(--earth-gray) !important;
+      }
+
+      .habit-item {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        padding: 14px 6px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+        transition: all 0.3s;
+        background: var(--earth-light);
+        border-left: 4px solid var(--earth-stroke);
+      }
+      .habit-item.not-applicable {
+        opacity: 0.55;
+        background: var(--earth-gray);
+      }
+      .habit-checkbox {
+        width: 24px;
+        height: 24px;
+        margin-right: 8px;
+        cursor: pointer;
+        accent-color: var(--earth-dark);
+      }
+      .habit-chart-btn {
+        margin-left: 8px;
+        background: var(--earth-stroke);
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 13px;
+        padding: 4px 10px;
+        cursor: pointer;
+      }
+      .habit-name {
+        flex: 1;
+        font-size: 16px;
+        color: var(--earth-dark);
+      }
+      .habit-schedule {
+        font-size: 12px;
+        color: #877c6d;
+        margin-left: 9px;
+        padding: 2px 7px;
+        background: white;
+        border-radius: 5px;
+      }
+      .habit-input {
+        width: 70px;
+        padding: 7px;
+        border: 2px solid #dcd9d2;
+        border-radius: 5px;
+        font-size: 13px;
+        margin-right: 7px;
+      }
+      .habit-input:focus {
+        outline: none;
+        border-color: var(--earth-stroke);
+      }
+      .footer {
+        text-align: center;
+        margin-top: 24px;
+        color: #877c6d;
+        font-size: 14px;
+      }
+
+      /* Modal */
+      .chart-modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(81, 70, 57, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+      .chart-modal-content {
+        background: var(--earth-card);
+        padding: 20px 25px;
+        border-radius: 16px;
+        min-width: 240px;
+        max-width: 97vw;
+        width: 440px;
+        max-height: 92vh;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        align-items: stretch;
+      }
+
+      .chart-modal-title-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        min-height: 37px;
+        margin-bottom: 8px;
+      }
+      .chart-modal-content {
+        position: relative;
+      }
+      .close-chart-modal {
+        position: absolute;
+        top: 13px;
+        right: 23px;
+        background: var(--earth-stroke);
+        color: white;
+        border: none;
+        font-size: 20px;
+        width: 33px;
+        height: 33px;
+        border-radius: 50%;
+        cursor: pointer;
+        box-shadow: 0 1.5px 6px rgba(191, 166, 143, 0.12);
+      }
+      .chart-modal-title {
+        font-weight: bold;
+        color: var(--earth-dark);
+        font-size: 1.13em;
+        margin-bottom: 10px;
+        padding-right: 40px; /* prevents overlap */
+        white-space: pre-line;
+        word-break: break-word;
+      }
+
+      .legend-row-chart {
+        font-size: 11px;
+        color: #726258;
+        text-align: left;
+        margin-bottom: 5px;
+      }
+      #habitGridOuterModal {
+        overflow-x: auto;
+        margin-bottom: 13px;
+        display: flex;
+        justify-content: center;
+      }
+      #habitGridWrapModal {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+      }
+      #dayLabelsModal {
+        display: flex;
+        flex-direction: column;
+        margin-right: 5px;
+      }
+      #habitGridModal {
+        display: flex;
+        flex-direction: row;
+      }
+      .day-label-modal {
+        font-size: 10px;
+        text-align: center;
+        color: #b7a69e;
+        margin-bottom: 3px;
+        height: 19px;
+        line-height: 19px;
+        width: 24px;
+      }
+      .week-col-modal {
+        display: flex;
+        flex-direction: column;
+        height: 154px;
+      }
+      .day-cell-modal {
+        width: 19px;
+        height: 19px;
+        border-radius: 4px;
+        background: var(--earth-gray);
+        margin: 1.25px;
+        border: 1px solid #ede4db44;
+        cursor: pointer;
+        box-sizing: border-box;
+        transition: background 0.2s;
+      }
+      .day-cell-modal.done {
+        background: var(--earth-success);
+        border: 1px solid #9acc95;
+      }
+      .day-cell-modal.missed {
+        background: var(--earth-miss);
+        opacity: 0.95;
+        border: 1px solid #e49d8c;
+      }
+      #rollingChartContModal {
+        width: 100%;
+        max-width: 420px;
+        margin: 0 auto;
+        background: var(--earth-light);
+        border-radius: 8px;
+        margin-top: 6px;
+      }
+      #rollingChartModal {
+        width: 100%;
+        height: 150px !important;
+        max-width: 97vw;
+      }
+      @media (max-width: 600px) {
+        .container {
+          max-width: 100vw;
+          border-radius: 0;
+          padding: 3px 0 28px 0;
+          box-shadow: none;
+        }
+        .stats {
+          grid-template-columns: 1fr;
+          gap: 8px;
+        }
+        h1,
+        .current-date {
+          font-size: 20px;
+        }
+        .habit-item {
+          padding: 14px 3px;
+          border-radius: 0;
+        }
+        .health-gauge-col {
+          min-width: 36px;
+          padding-left: 2px;
+          padding-right: 8px;
+        }
+        .chart-modal-content {
+          padding: 9px 3px 11px 3px;
+          width: 99vw;
+          min-width: 94vw;
+          max-width: 99vw;
+        }
+        #habitGridWrapModal {
+          min-width: 96vw;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1 onclick="jumpToToday()">🎯 Ben's Habit Tracker</h1>
+      <div class="date-nav">
+        <button onclick="changeDate(-1)">←</button>
+        <div
+          class="current-date"
+          id="currentDate"
+        ></div>
+        <button onclick="changeDate(1)">→</button>
+        <!-- <button
+          class="today-btn"
+          onclick="jumpToToday()"
+        >
+          Today
+        </button> -->
+      </div>
+      <div class="stats">
+        <div class="stat-card">
+          <h3>Today's Progress</h3>
+          <div
+            class="value"
+            id="todayProgress"
+          >
+            0%
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Completed</h3>
+          <div
+            class="value"
+            id="completedCount"
+          >
+            0/0
+          </div>
+        </div>
+        <div class="stat-card">
+          <h3>Week Streak</h3>
+          <div
+            class="value"
+            id="weekStreak"
+          >
+            0
+          </div>
+        </div>
+      </div>
+      <div
+        class="habits-list"
+        id="habitsList"
+      ></div>
+      <div class="footer">
+        <p>Data is saved on the database</p>
+      </div>
+    </div>
+    <!-- CHART MODAL -->
+    <div
+      id="chartModal"
+      class="chart-modal"
+      style="display: none"
+    >
+      <div class="chart-modal-content">
+        <div class="chart-modal-title-row">
+          <div
+            class="chart-modal-title"
+            id="chartModalTitle"
+          ></div>
+          <button
+            class="close-chart-modal"
+            onclick="closeChartModal()"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="legend-row-chart">
+          Green = completed; Light brown = missed; Rolling average =
+          <b>line graph</b>
+        </div>
+        <div id="habitGridOuterModal">
+          <div id="habitGridWrapModal">
+            <div id="dayLabelsModal"></div>
+            <div id="habitGridModal"></div>
+          </div>
+        </div>
+        <div id="rollingChartContModal">
+          <canvas id="rollingChartModal"></canvas>
+        </div>
+      </div>
+    </div>
+    <script>
+      // HABITS LIST
+      const habits = [
+        { id: 1, name: "Read Bible", schedule: "daily", type: "checkbox" },
+        {
+          id: 2,
+          name: "Sing + Pray + Read Together as Family",
+          schedule: "daily",
+          type: "checkbox",
+        },
+        { id: 3, name: "Other Reading", schedule: "daily", type: "checkbox" },
+        {
+          id: 4,
+          name: "Sleeping Hours",
+          schedule: "daily",
+          type: "number",
+          target: 7,
+        },
+        {
+          id: 5,
+          name: "Daily 15 with Huey Lin",
+          schedule: "daily",
+          type: "checkbox",
+        },
+        {
+          id: 6,
+          name: "Spending Time with Children",
+          schedule: "daily",
+          type: "checkbox",
+        },
+        { id: 7, name: "Morning Prayer", schedule: "daily", type: "checkbox" },
+        {
+          id: 8,
+          name: "Leave Office by 5pm",
+          schedule: "daily",
+          type: "checkbox",
+        },
+        { id: 9, name: "Exercise", schedule: "MWF", type: "checkbox" },
+        {
+          id: 10,
+          name: "Build Digital Product",
+          schedule: "TTh",
+          type: "checkbox",
+        },
+      ]
+
+      let currentDate = new Date()
+      currentDate.setHours(0, 0, 0, 0)
+      let allHabitLogs = {} // cache of log data
+
+      function getDateKey(date) {
+        // Get YYYY-MM-DD in local time (Kuala Lumpur)
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, "0")
+        const day = String(date.getDate()).padStart(2, "0")
+        return `${year}-${month}-${day}`
+      }
+
+      async function fetchHabitLogs(range = 120) {
+        let today = new Date()
+        const end = getDateKey(today)
+        let startDate = new Date(today)
+        startDate.setDate(today.getDate() - (range - 1))
+        const start = getDateKey(startDate)
+
+        const response = await fetch(
+          `/.netlify/functions/get-habits?start_date=${start}&end_date=${end}`
+        )
+        const rows = await response.json()
+        // { date: { habitId: { completed, value } } }
+        const logs = {}
+        rows.forEach((row) => {
+          // Extract local date YYYY-MM-DD from UTC ISO string
+          let local = new Date(row.date)
+          let year = local.getFullYear()
+          let month = String(local.getMonth() + 1).padStart(2, "0")
+          let day = String(local.getDate()).padStart(2, "0")
+          let dateKey = `${year}-${month}-${day}` // e.g. "2025-10-25"
+          if (!logs[dateKey]) logs[dateKey] = {}
+          logs[dateKey][row.habit_id] = {
+            completed: row.completed,
+            value: row.value,
+          }
+        })
+
+        return logs
+      }
+
+      async function saveData(habitData, date = currentDate) {
+        const dateKey = getDateKey(date)
+        const promises = []
+        console.log("saveData posting:", { dateKey, habitData })
+
+        for (const [habitId, item] of Object.entries(habitData)) {
+          console.log("POSTING to save-habit:", {
+            habitId,
+            date,
+            completed: item.completed,
+            value: item.value,
+          })
+          promises.push(
+            fetch("/.netlify/functions/save-habit", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                habitId: parseInt(habitId),
+                date: dateKey,
+                completed: item.completed || false,
+                value: item.value || 0,
+              }),
+            })
+          )
+        }
+        await Promise.all(promises)
+      }
+
+      // ----------- HABIT UI RENDERING -------------
+      function isHabitApplicable(habit, date) {
+        if (habit.schedule === "daily") return true
+        const d = date.getDay()
+        if (habit.schedule === "MWF") return d === 1 || d === 3 || d === 5
+        if (habit.schedule === "TTh") return d === 2 || d === 4
+        return true
+      }
+      function getScheduleLabel(schedule) {
+        if (schedule === "daily") return "Daily"
+        if (schedule === "MWF") return "Mon/Wed/Fri"
+        if (schedule === "TTh") return "Tue/Thu"
+        return schedule
+      }
+      function gaugeColorClass(filledCount) {
+        if (filledCount === 0) return "bar-gray"
+        if (filledCount <= 2) return "bar-red"
+        if (filledCount <= 5) return "bar-orange"
+        return "bar-green"
+      }
+      function countCheckedInPast7Days(habit, date) {
+        let count = 0
+        let day = new Date(date)
+        for (let i = 0; i < 7; i++) {
+          let dateKey = getDateKey(day)
+          if (isHabitApplicable(habit, day)) {
+            let log = allHabitLogs[dateKey]?.[habit.id]
+            if (log) {
+              if (habit.type === "checkbox" && log.completed) count++
+              else if (
+                habit.type === "number" &&
+                log.value >= (habit.target || 1)
+              )
+                count++
+            }
+          }
+
+          // console log added
+          console.log("Habit logs for", dateKey, allHabitLogs[dateKey])
+
+          day.setDate(day.getDate() - 1)
+        }
+        console.log(`Habit ${habit.id}: counted ${count} in past 7 days`) // Add debugging
+        return count
+      }
+
+      function renderHabits(date) {
+        const habitsList = document.getElementById("habitsList")
+        habitsList.innerHTML = ""
+        const todayKey = getDateKey(date)
+        const data = allHabitLogs[todayKey] || {}
+        habits.forEach((habit) => {
+          const applicable = isHabitApplicable(habit, date)
+          const habitData = data[habit.id] || {}
+          const rowDiv = document.createElement("div")
+          rowDiv.className = "habit-row"
+
+          // Console log added
+          console.log(`habitId: ${habit.id}`, habitData)
+
+          // Health gauge (7 bars)
+          let gaugeCol = document.createElement("div")
+          gaugeCol.className = "health-gauge-col"
+          let bars = 7
+          let filled = countCheckedInPast7Days(habit, date)
+          let colorClass = gaugeColorClass(filled)
+          let gaugeHTML = '<div class="health-gauge">'
+          for (let i = 0; i < bars; i++) {
+            gaugeHTML += `<div class="health-bar ${
+              i < filled ? colorClass : ""
+            }"></div>`
+          }
+          gaugeHTML += "</div>"
+          gaugeCol.innerHTML = gaugeHTML
+
+          // console.log(
+          //   `Gauge for habit ${habit.id}: filled=${filled}, colorClass=${colorClass}`
+          // )
+
+          let habitDiv = document.createElement("div")
+          habitDiv.className = "habit-item"
+          if (!applicable) habitDiv.classList.add("not-applicable")
+          let inputHTML = ""
+          if (habit.type === "checkbox") {
+            inputHTML = `<input type="checkbox" class="habit-checkbox" ${
+              habitData.completed ? "checked" : ""
+            } ${!applicable ? "disabled" : ""} onchange="updateHabit(${
+              habit.id
+            }, this.checked)">`
+          } else if (habit.type === "number") {
+            inputHTML = `<input type="number" class="habit-input" placeholder="hrs" value="${
+              habitData.value || ""
+            }" ${!applicable ? "disabled" : ""} onchange="updateHabitNumber(${
+              habit.id
+            }, this.value)">`
+          }
+          let chartButtonHTML = habit.type
+            ? `<button class='habit-chart-btn' onclick='showChartModal(${habit.id})'>📊</button>`
+            : ""
+          habitDiv.innerHTML = `${inputHTML}<span class="habit-name">${
+            habit.name
+          }</span><span class="habit-schedule">${getScheduleLabel(
+            habit.schedule
+          )}</span>${chartButtonHTML}`
+          rowDiv.appendChild(gaugeCol)
+          rowDiv.appendChild(habitDiv)
+          habitsList.appendChild(rowDiv)
+        })
+      }
+
+      // ----------- STATS: PROGRESS & STREAK -------------
+      function updateStats(date) {
+        const data = allHabitLogs[getDateKey(date)] || {}
+        const applicableHabits = habits.filter((h) =>
+          isHabitApplicable(h, date)
+        )
+        let completed = 0
+        applicableHabits.forEach((habit) => {
+          const habitData = data[habit.id] || {}
+          if (habit.type === "checkbox" && habitData.completed) completed++
+          else if (habit.type === "number" && habitData.value >= habit.target)
+            completed++
+        })
+        const total = applicableHabits.length
+        const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
+        document.getElementById("todayProgress").textContent = percentage + "%"
+        document.getElementById(
+          "completedCount"
+        ).textContent = `${completed}/${total}`
+        document.getElementById("weekStreak").textContent =
+          calculateWeekStreak(date)
+      }
+
+      function calculateWeekStreak(date) {
+        let streak = 0
+        let checkDate = new Date(date)
+        for (let i = 0; i < 7; i++) {
+          const data = allHabitLogs[getDateKey(checkDate)] || {}
+          const applicableHabits = habits.filter((h) =>
+            isHabitApplicable(h, checkDate)
+          )
+          let dayCompleted = 0
+          applicableHabits.forEach((habit) => {
+            const habitData = data[habit.id] || {}
+            if (habit.type === "checkbox" && habitData.completed) dayCompleted++
+            else if (habit.type === "number" && habitData.value >= habit.target)
+              dayCompleted++
+          })
+          if (
+            dayCompleted === applicableHabits.length &&
+            applicableHabits.length > 0
+          )
+            streak++
+          checkDate.setDate(checkDate.getDate() - 1)
+        }
+        return streak
+      }
+
+      // ----------- EVENT HOOKS & SAVES -------------
+      window.updateHabit = async function (habitId, checked) {
+        const todayKey = getDateKey(currentDate)
+        if (!allHabitLogs[todayKey]) allHabitLogs[todayKey] = {}
+        if (!allHabitLogs[todayKey][habitId])
+          allHabitLogs[todayKey][habitId] = {}
+        allHabitLogs[todayKey][habitId].completed = checked
+        await saveData(allHabitLogs[todayKey], currentDate)
+        renderHabits(currentDate)
+        updateStats(currentDate)
+      }
+
+      window.updateHabitNumber = async function (habitId, value) {
+        const todayKey = getDateKey(currentDate)
+        if (!allHabitLogs[todayKey]) allHabitLogs[todayKey] = {}
+        if (!allHabitLogs[todayKey][habitId])
+          allHabitLogs[todayKey][habitId] = {}
+        allHabitLogs[todayKey][habitId].value = parseFloat(value) || 0
+        await saveData(allHabitLogs[todayKey], currentDate)
+        renderHabits(currentDate)
+        updateStats(currentDate)
+      }
+
+      // ----------- DATE NAV -------------
+      window.changeDate = async function (days) {
+        currentDate.setDate(currentDate.getDate() + days)
+        updateDateDisplay()
+        renderHabits(currentDate)
+        updateStats(currentDate)
+      }
+      window.jumpToToday = function () {
+        currentDate = new Date()
+        currentDate.setHours(0, 0, 0, 0)
+        updateDateDisplay()
+        renderHabits(currentDate)
+        updateStats(currentDate)
+      }
+
+      function updateDateDisplay() {
+        const options = {
+          weekday: "short", // "Sat"
+          day: "numeric", // "25"
+          month: "short", // "Oct"
+        }
+        document.getElementById("currentDate").textContent =
+          currentDate.toLocaleDateString("en-GB", options)
+      }
+
+      // ----------- MODAL/CHARTS -------------
+      let chartInstance = null
+      window.showChartModal = function (habitId) {
+        document.getElementById("chartModalTitle").textContent =
+          habits.find((h) => h.id === habitId).name + " — Progress Chart"
+        let weeks = 16 // show about 4 months
+        renderModalHabitGrid(habitId, weeks)
+        document.getElementById("chartModal").style.display = "flex"
+      }
+      window.closeChartModal = function () {
+        document.getElementById("chartModal").style.display = "none"
+        if (chartInstance) {
+          chartInstance.destroy()
+          chartInstance = null
+        }
+      }
+      function renderModalHabitGrid(habitId, weeks) {
+        const dayLabelsDiv = document.getElementById("dayLabelsModal")
+        const gridDiv = document.getElementById("habitGridModal")
+        dayLabelsDiv.innerHTML = ""
+        gridDiv.innerHTML = ""
+        const dow_labels = ["S", "M", "T", "W", "T", "F", "S"]
+        for (let d = 0; d < 7; d++) {
+          let lab = document.createElement("div")
+          lab.className = "day-label-modal"
+          lab.innerHTML = dow_labels[d]
+          dayLabelsDiv.appendChild(lab)
+        }
+        let today = new Date()
+        let num = weeks * 7
+        let dates = []
+        for (let i = num - 1; i >= 0; i--) {
+          let d = new Date(today)
+          d.setDate(d.getDate() - i)
+          dates.push(getDateKey(d))
+        }
+        for (let w = 0; w < weeks; w++) {
+          let wc = document.createElement("div")
+          wc.className = "week-col-modal"
+          for (let d = 0; d < 7; d++) {
+            let idx = w * 7 + d
+            if (idx >= dates.length) break
+            let ky = dates[idx]
+            let cell = document.createElement("div")
+            cell.className = "day-cell-modal"
+            let v = allHabitLogs[ky]?.[habitId]?.completed
+            if (v) cell.classList.add("done")
+            else cell.classList.add("missed")
+            cell.title = ky + (v ? ": completed" : " (missed)")
+            wc.appendChild(cell)
+          }
+          gridDiv.appendChild(wc)
+        }
+        renderModalRollingChart(habitId, weeks)
+      }
+      function modalRollingAvg(habitId, weeks) {
+        let today = new Date(),
+          num = weeks * 7,
+          dates = []
+        for (let i = num - 1; i >= 0; i--) {
+          let d = new Date(today)
+          d.setDate(d.getDate() - i)
+          dates.push(getDateKey(d))
+        }
+        let v = []
+        for (let i = 0; i < dates.length; i++) {
+          let cnt = 0
+          for (let j = Math.max(0, i - 6); j <= i; j++) {
+            if (allHabitLogs[dates[j]]?.[habitId]?.completed) cnt++
+          }
+          v.push(cnt)
+        }
+        return [dates, v]
+      }
+      function renderModalRollingChart(habitId, weeks) {
+        let [dates, v] = modalRollingAvg(habitId, weeks)
+        let lbl = dates.map((x) => {
+          let d = new Date(x)
+          return d.toLocaleDateString("en-MY", {
+            month: "short",
+            day: "numeric",
+          })
+        })
+        let ctx = document.getElementById("rollingChartModal").getContext("2d")
+        if (chartInstance) chartInstance.destroy()
+        chartInstance = new Chart(ctx, {
+          type: "line",
+          data: {
+            labels: lbl,
+            datasets: [
+              {
+                label: "7-day Rolling Count",
+                data: v,
+                borderColor: "#68886a",
+                backgroundColor: "rgba(191,166,143,0.09)",
+                fill: true,
+                tension: 0.32,
+                pointRadius: 1.4,
+              },
+            ],
+          },
+          options: {
+            plugins: { legend: { display: false } },
+            scales: {
+              y: {
+                min: 0,
+                max: 7,
+                stepSize: 1,
+                title: { display: true, text: "Rolling Weekly Count" },
+              },
+              x: { display: false },
+            },
+            animation: false,
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        })
+      }
+
+      // ----------- INITIALIZE -------------
+      window.onload = async function () {
+        allHabitLogs = await fetchHabitLogs(120) // 4 months
+        updateDateDisplay()
+        renderHabits(currentDate)
+        updateStats(currentDate)
+      }
+    </script>
+  </body>
+</html>
