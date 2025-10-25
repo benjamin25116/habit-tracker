@@ -505,7 +505,7 @@
         {
           id: 8,
           name: "Leave Office by 5pm",
-          schedule: "daily",
+          schedule: "weekdays",
           type: "checkbox",
         },
         { id: 9, name: "Exercise", schedule: "MWF", type: "checkbox" },
@@ -593,12 +593,14 @@
         const d = date.getDay()
         if (habit.schedule === "MWF") return d === 1 || d === 3 || d === 5
         if (habit.schedule === "TTh") return d === 2 || d === 4
+        if (habit.schedule === "weekdays") return d >= 1 && d <= 5
         return true
       }
       function getScheduleLabel(schedule) {
         if (schedule === "daily") return "Daily"
         if (schedule === "MWF") return "Mon/Wed/Fri"
         if (schedule === "TTh") return "Tue/Thu"
+        if (schedule === "weekdays") return "Weekdays"
         return schedule
       }
       function gaugeColorClass(filledCount) {
