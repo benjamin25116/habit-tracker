@@ -355,12 +355,17 @@
           justify-content: space-between;
         }
         .stats {
-          /* grid-template-columns: 1fr; */
+          grid-template-columns: repeat(3, 1fr);
           gap: 8px;
         }
         .stat-card h3 {
           font-size: 11px;
         }
+
+        .stat-card .value {
+          font-size: 20px;
+        }
+
         h1,
         .current-date {
           font-size: 25px;
