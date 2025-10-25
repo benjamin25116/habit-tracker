@@ -45,7 +45,7 @@
         align-items: center;
         gap: 10px;
         margin: 20px 0 16px 0;
-        padding: 8px 0;
+        padding: 8px 8px;
         background: var(--earth-light);
         border-radius: 10px;
       }
@@ -351,13 +351,19 @@
           padding: 3px 0 28px 0;
           box-shadow: none;
         }
+        .date-nav {
+          justify-content: space-between;
+        }
         .stats {
-          grid-template-columns: 1fr;
+          /* grid-template-columns: 1fr; */
           gap: 8px;
+        }
+        .stat-card h3 {
+          font-size: 11px;
         }
         h1,
         .current-date {
-          font-size: 20px;
+          font-size: 25px;
         }
         .habit-item {
           padding: 14px 3px;
