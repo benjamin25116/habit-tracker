@@ -842,6 +842,8 @@
           d.setDate(d.getDate() - i)
           dates.push(getDateKey(d))
         }
+        // Get habit meta info
+        const habit = habits.find((h) => h.id === habitId)
         for (let w = 0; w < weeks; w++) {
           let wc = document.createElement("div")
           wc.className = "week-col-modal"
@@ -851,10 +853,16 @@
             let ky = dates[idx]
             let cell = document.createElement("div")
             cell.className = "day-cell-modal"
-            let v = allHabitLogs[ky]?.[habitId]?.completed
-            if (v) cell.classList.add("done")
+            let log = allHabitLogs[ky]?.[habitId]
+            let isDone = false
+            if (habit.type === "checkbox") {
+              isDone = log && !!log.completed
+            } else if (habit.type === "number") {
+              isDone = log && log.value >= (habit.target || 1)
+            }
+            if (isDone) cell.classList.add("done")
             else cell.classList.add("missed")
-            cell.title = ky + (v ? ": completed" : " (missed)")
+            cell.title = ky + (isDone ? ": completed" : " (missed)")
             wc.appendChild(cell)
           }
           gridDiv.appendChild(wc)
@@ -870,11 +878,19 @@
           d.setDate(d.getDate() - i)
           dates.push(getDateKey(d))
         }
+        // Get habit meta info
+        const habit = habits.find((h) => h.id === habitId)
         let v = []
         for (let i = 0; i < dates.length; i++) {
           let cnt = 0
+          // Compute rolling 7-day sum for the right type
           for (let j = Math.max(0, i - 6); j <= i; j++) {
-            if (allHabitLogs[dates[j]]?.[habitId]?.completed) cnt++
+            let log = allHabitLogs[dates[j]]?.[habitId]
+            if (habit.type === "checkbox") {
+              if (log && log.completed) cnt++
+            } else if (habit.type === "number") {
+              if (log && log.value >= (habit.target || 1)) cnt++
+            }
           }
           v.push(cnt)
         }
