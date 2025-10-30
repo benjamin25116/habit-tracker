@@ -1019,15 +1019,16 @@
 
       async function updateFooterQuote() {
         try {
-          const response = await fetch("https://zenquotes.io/api/random")
+          const response = await fetch("/.netlify/functions/get-quote")
           const result = await response.json()
           if (
-            Array.isArray(result) &&
-            result.length > 0 &&
-            result[0].q &&
-            result[0].a
+            Array.isArray(result) && // expecting an array
+            result.length > 0 && // checking if array is empty
+            result[0].q && // checking for quote
+            result[0].a // checking for author
           ) {
             const quoteObj = result[0]
+            console.log(quoteObj)
             document.getElementById("quoteText").textContent = quoteObj.q
             document.getElementById("quoteAuthor").textContent =
               "— " + quoteObj.a
