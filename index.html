@@ -360,11 +360,11 @@
         justify-content: center;
         align-items: flex-start;
       }
-      #dayLabelsModal {
+      /* #dayLabelsModal {
         display: flex;
         flex-direction: column;
         margin-right: 5px;
-      }
+      } */
       #habitGridModal {
         display: flex;
         flex-direction: row;
@@ -537,7 +537,7 @@
         </div>
         <div id="habitGridOuterModal">
           <div id="habitGridWrapModal">
-            <div id="dayLabelsModal"></div>
+            <!-- <div id="dayLabelsModal"></div> -->
             <div id="habitGridModal"></div>
           </div>
         </div>
@@ -636,7 +636,7 @@
       async function saveData(habitData, date = currentDate) {
         const dateKey = getDateKey(date)
         const promises = []
-        console.log("saveData posting:", { dateKey, habitData })
+        // console.log("saveData posting:", { dateKey, habitData })
 
         for (const [habitId, item] of Object.entries(habitData)) {
           // console.log("POSTING to save-habit:", {
@@ -699,14 +699,11 @@
                 count++
             }
           }
-
-          // console log added
-          console.log("Habit logs for", dateKey, allHabitLogs[dateKey])
-
+          // console.log("Habit logs for", dateKey, allHabitLogs[dateKey])
           day.setDate(day.getDate() - 1)
         }
-        console.log(`Habit ${habit.id}: counted ${count} in past 7 days`) // Add debugging
-        return count
+        // console.log(`Habit ${habit.id}: counted ${count} in past 7 days`) // Add debugging
+        // return count
       }
 
       function renderHabits(date) {
@@ -899,17 +896,17 @@
         }
       }
       function renderModalHabitGrid(habitId, weeks) {
-        const dayLabelsDiv = document.getElementById("dayLabelsModal")
+        // const dayLabelsDiv = document.getElementById("dayLabelsModal")
         const gridDiv = document.getElementById("habitGridModal")
-        dayLabelsDiv.innerHTML = ""
+        // dayLabelsDiv.innerHTML = ""
         gridDiv.innerHTML = ""
         const dow_labels = ["S", "M", "T", "W", "T", "F", "S"]
-        for (let d = 0; d < 7; d++) {
-          let lab = document.createElement("div")
-          lab.className = "day-label-modal"
-          lab.innerHTML = dow_labels[d]
-          dayLabelsDiv.appendChild(lab)
-        }
+        // for (let d = 0; d < 7; d++) {
+        //   let lab = document.createElement("div")
+        //   lab.className = "day-label-modal"
+        //   lab.innerHTML = dow_labels[d]
+        //   dayLabelsDiv.appendChild(lab)
+        // }
         let today = new Date()
         let num = weeks * 7
         let dates = []
@@ -1028,7 +1025,7 @@
             result[0].a // checking for author
           ) {
             const quoteObj = result[0]
-            console.log(quoteObj)
+            // console.log(quoteObj)
             document.getElementById("quoteText").textContent = quoteObj.q
             document.getElementById("quoteAuthor").textContent =
               "— " + quoteObj.a
