@@ -10,22 +10,25 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       :root {
-        --earth-bg: #e7e3dc;
-        --earth-card: #f6f2ec;
+        --earth-bg: #eee9e6;
+        --earth-card: #faf8f7;
         --earth-stroke: #b7a69e;
         --earth-dark: #453927;
-        --earth-light: #ecebe3;
-        --earth-success: #68886a;
-        --earth-warn: #d8a456;
-        --earth-gray: #dad7cd;
-        --earth-miss: #efb1a1;
-        --earth-error: #c77c7c;
+        --earth-light: #ede9e6;
+        --earth-success: #7fb285; /* slightly warmer green */
+        --earth-warn: #d1b08f;
+        --earth-gray: #d8d4d0;
+        --earth-miss: #e4c8c3;
+        --earth-error: #b59d90;
       }
+
+      /* General page */
       body {
         background: var(--earth-bg);
-        font-family: Segoe UI, sans-serif;
+        font-family: Segoe UI, system-ui, sans-serif;
         margin: 0;
       }
+
       .container {
         max-width: 900px;
         margin: 0 auto;
@@ -34,11 +37,13 @@
         padding: 20px 8px 56px 8px;
         box-shadow: 0 8px 36px rgba(191, 166, 143, 0.08);
       }
+
       h1 {
         color: var(--earth-dark);
         margin-bottom: 10px;
         text-align: center;
       }
+
       .date-nav {
         display: flex;
         justify-content: center;
@@ -49,6 +54,7 @@
         background: var(--earth-light);
         border-radius: 10px;
       }
+
       .date-nav button,
       .date-nav .today-btn {
         background: var(--earth-stroke);
@@ -60,6 +66,7 @@
         font-size: 16px;
         transition: all 0.3s;
       }
+
       .date-nav button:hover,
       .date-nav .today-btn:hover {
         background: var(--earth-dark);
@@ -70,6 +77,7 @@
         color: white;
         margin-left: 8px;
       }
+
       .current-date {
         font-size: 18px;
         font-weight: bold;
@@ -77,6 +85,7 @@
         min-width: 160px;
         text-align: center;
       }
+
       .stats {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -100,23 +109,51 @@
         font-size: 28px;
         font-weight: bold;
       }
-      .habits-list {
-        margin-top: 16px;
+
+      /* ----- HABITS GRID UI ----- */
+      .habits-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-top: 18px;
       }
-      .habit-row {
+
+      /* Responsive: on mobile, 2 columns */
+      @media (max-width: 700px) {
+        .habits-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 11px;
+          margin-top: 10px;
+        }
+      }
+
+      .habit-cell {
+        background: #f4f2f1;
+        border: 1.5px solid #e0dbd7;
+        border-radius: 14px;
+        padding: 13px 12px 16px 12px;
         display: flex;
+        flex-direction: column;
         align-items: stretch;
-        width: 100%;
+        position: relative;
+        min-width: 0;
+        box-shadow: 0 1.5px 6px rgba(126, 112, 96, 0.05);
+        transition: background 0.3s, border-color 0.3s;
       }
+
+      .habit-cell.done-today {
+        background: #e7f6e9; /* subtle green tint when done today */
+        border-color: #b6dab7;
+      }
+
       .health-gauge-col {
+        margin-bottom: 8px;
         display: flex;
+        justify-content: flex-start;
         align-items: center;
-        justify-content: center;
-        min-width: 65px;
-        margin-right: 6px;
-        padding-left: 10px;
-        padding-right: 10px;
       }
+
+      /* Health gauge bars */
       .health-gauge {
         display: flex;
         gap: 2px;
@@ -127,7 +164,6 @@
         border-radius: 2px;
         background: var(--earth-gray);
         transition: background 0.2s;
-        margin: 0;
       }
       .bar-red {
         background: var(--earth-error) !important;
@@ -138,68 +174,62 @@
       .bar-green {
         background: var(--earth-success) !important;
       }
-
       .bar-gray {
         background: var(--earth-gray) !important;
       }
 
-      .habit-item {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        padding: 14px 6px;
-        margin-bottom: 10px;
-        border-radius: 10px;
-        transition: all 0.3s;
-        background: var(--earth-light);
-        border-left: 4px solid var(--earth-stroke);
-      }
-      .habit-item.not-applicable {
-        opacity: 0.55;
-        background: var(--earth-gray);
-      }
-      .habit-checkbox {
-        width: 24px;
-        height: 24px;
-        margin-right: 8px;
-        cursor: pointer;
-        accent-color: var(--earth-dark);
-      }
-      .habit-chart-btn {
-        margin-left: 8px;
-        background: var(--earth-stroke);
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-size: 13px;
-        padding: 4px 10px;
-        cursor: pointer;
-      }
       .habit-name {
-        flex: 1;
-        font-size: 16px;
-        color: var(--earth-dark);
+        font-weight: bold;
+        font-size: 1.1em;
+        color: #4d463d;
+        margin-bottom: 2px;
       }
       .habit-schedule {
-        font-size: 12px;
-        color: #877c6d;
-        margin-left: 9px;
-        padding: 2px 7px;
-        background: white;
-        border-radius: 5px;
+        font-size: 0.93em;
+        color: #9e948c;
+        background: #f7f4f1;
+        border-radius: 6px;
+        padding: 2.2px 10px;
+        display: inline-block;
+        margin-bottom: 7px;
+        margin-left: 2px;
       }
+      .habit-chart-btn {
+        font-size: 14px;
+        padding: 4px 11px;
+        border-radius: 5px;
+        border: none;
+        background: #d0ccc9;
+        color: #4b4441;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 3px;
+      }
+      .habit-chart-btn:hover {
+        background: #b9b5b2;
+      }
+
+      .habit-cell.not-applicable {
+        opacity: 0.5;
+        background: #ebe8e6;
+      }
+
+      /* Responsive tweaks for habit cell and gauge */
+      @media (max-width: 600px) {
+        .habit-cell {
+          padding: 7px 6px 12px 6px;
+        }
+        .health-bar {
+          width: 7px;
+          height: 12px;
+        }
+      }
+
+      .habit-checkbox,
       .habit-input {
-        width: 40px;
-        padding: 7px;
-        border: 2px solid #dcd9d2;
-        border-radius: 5px;
-        font-size: 13px;
-        margin-right: 7px;
+        accent-color: var(--earth-dark);
       }
-      .habit-input:focus {
-        outline: none;
-        border-color: var(--earth-stroke);
-      }
+
       .footer {
         text-align: center;
         margin-top: 24px;
@@ -207,7 +237,7 @@
         font-size: 14px;
       }
 
-      /* Modal */
+      /* Modal styles (unchanged from original) */
       .chart-modal {
         position: fixed;
         top: 0;
@@ -233,7 +263,6 @@
         position: relative;
         align-items: stretch;
       }
-
       .chart-modal-title-row {
         display: flex;
         align-items: center;
@@ -264,11 +293,10 @@
         color: var(--earth-dark);
         font-size: 1.13em;
         margin-bottom: 10px;
-        padding-right: 40px; /* prevents overlap */
+        padding-right: 40px;
         white-space: pre-line;
         word-break: break-word;
       }
-
       .legend-row-chart {
         font-size: 11px;
         color: #726258;
@@ -277,7 +305,6 @@
       }
       #habitGridOuterModal {
         overflow-x: auto;
-        /* margin-bottom: 13px; */
         display: flex;
         justify-content: center;
       }
@@ -308,7 +335,6 @@
       .week-col-modal {
         display: flex;
         flex-direction: column;
-        /* height: 154px; */
         padding-bottom: 5px;
       }
       .day-cell-modal {
@@ -361,35 +387,12 @@
         .stat-card h3 {
           font-size: 11px;
         }
-
         .stat-card .value {
           font-size: 20px;
         }
-
         h1,
         .current-date {
           font-size: 25px;
-        }
-        .habit-item {
-          padding: 14px 3px;
-          border-radius: 0;
-        }
-        .health-gauge-col {
-          min-width: 36px;
-          padding-left: 8px;
-          padding-right: 2px;
-        }
-        .health-bar {
-          width: 6px;
-        }
-        .chart-modal-content {
-          padding: 22px 12px 22px 12px;
-          /* width: 99vw; */
-          min-width: 80vw;
-          max-width: 90vw;
-        }
-        #habitGridWrapModal {
-          min-width: 80vw;
         }
       }
     </style>
@@ -441,7 +444,7 @@
         </div>
       </div>
       <div
-        class="habits-list"
+        class="habits-grid"
         id="habitsList"
       ></div>
       <div class="footer">
@@ -654,13 +657,19 @@
         habits.forEach((habit) => {
           const applicable = isHabitApplicable(habit, date)
           const habitData = data[habit.id] || {}
-          const rowDiv = document.createElement("div")
-          rowDiv.className = "habit-row"
-
-          // Console log added
-          console.log(`habitId: ${habit.id}`, habitData)
-
-          // Health gauge (7 bars)
+          // Determine "done-for-today" status
+          let isDoneToday = false
+          if (habit.type === "checkbox") {
+            isDoneToday = habitData.completed
+          } else if (habit.type === "number") {
+            isDoneToday = habitData.value >= (habit.target || 1)
+          }
+          // Create habit cell
+          let cellDiv = document.createElement("div")
+          cellDiv.className = "habit-cell"
+          if (!applicable) cellDiv.classList.add("not-applicable")
+          if (isDoneToday && applicable) cellDiv.classList.add("done-today")
+          // Health gauge
           let gaugeCol = document.createElement("div")
           gaugeCol.className = "health-gauge-col"
           let bars = 7
@@ -674,39 +683,24 @@
           }
           gaugeHTML += "</div>"
           gaugeCol.innerHTML = gaugeHTML
-
-          // console.log(
-          //   `Gauge for habit ${habit.id}: filled=${filled}, colorClass=${colorClass}`
-          // )
-
-          let habitDiv = document.createElement("div")
-          habitDiv.className = "habit-item"
-          if (!applicable) habitDiv.classList.add("not-applicable")
-          let inputHTML = ""
-          if (habit.type === "checkbox") {
-            inputHTML = `<input type="checkbox" class="habit-checkbox" ${
-              habitData.completed ? "checked" : ""
-            } ${!applicable ? "disabled" : ""} onchange="updateHabit(${
-              habit.id
-            }, this.checked)">`
-          } else if (habit.type === "number") {
-            inputHTML = `<input type="number" class="habit-input" placeholder="hrs" value="${
-              habitData.value || ""
-            }" ${!applicable ? "disabled" : ""} onchange="updateHabitNumber(${
-              habit.id
-            }, this.value)">`
-          }
+          // Habit info
+          let infoDiv = document.createElement("div")
+          infoDiv.innerHTML = `
+      <div class="habit-name">${habit.name}</div>
+      <div class="habit-schedule">${getScheduleLabel(habit.schedule)}</div>
+    `
+          // Chart button
           let chartButtonHTML = habit.type
             ? `<button class='habit-chart-btn' onclick='showChartModal(${habit.id})'>📊</button>`
             : ""
-          habitDiv.innerHTML = `${inputHTML}<span class="habit-name">${
-            habit.name
-          }</span><span class="habit-schedule">${getScheduleLabel(
-            habit.schedule
-          )}</span>${chartButtonHTML}`
-          rowDiv.appendChild(gaugeCol)
-          rowDiv.appendChild(habitDiv)
-          habitsList.appendChild(rowDiv)
+          cellDiv.appendChild(gaugeCol)
+          cellDiv.appendChild(infoDiv)
+          if (chartButtonHTML) {
+            let chartBtn = document.createElement("div")
+            chartBtn.innerHTML = chartButtonHTML
+            cellDiv.appendChild(chartBtn)
+          }
+          habitsList.appendChild(cellDiv)
         })
       }
 
