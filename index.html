@@ -214,6 +214,48 @@
         background: #ebe8e6;
       }
 
+      .label-chart-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 3px;
+      }
+
+      .habit-schedule {
+        font-size: 80%;
+        border: 1px solid #dfd9d4;
+        border-radius: 7px;
+        background: #f6f2ec;
+        padding: 2px 7px;
+        opacity: 0.9;
+        margin-bottom: 0;
+        /* For alignment under title, see `.label-chart-row` */
+      }
+
+      .habit-chart-btn {
+        font-size: 80%;
+        padding: 2px 8px;
+        border-radius: 5px;
+        border: none;
+        background: #d0ccc9;
+        color: #4b4441;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 0;
+      }
+
+      .habit-chart-btn:hover {
+        background: #b9b5b2;
+      }
+
+      .habit-input {
+        margin-bottom: 7px;
+      }
+
+      .habit-name {
+        margin-bottom: 2px; /* Preserves spacing above labels/input */
+      }
+
       /* Responsive tweaks for habit cell and gauge */
       @media (max-width: 600px) {
         .habit-cell {
@@ -654,21 +696,41 @@
         habitsList.innerHTML = ""
         const todayKey = getDateKey(date)
         const data = allHabitLogs[todayKey] || {}
+
         habits.forEach((habit) => {
           const applicable = isHabitApplicable(habit, date)
           const habitData = data[habit.id] || {}
-          // Determine "done-for-today" status
+
+          // Done-for-today status
           let isDoneToday = false
           if (habit.type === "checkbox") {
             isDoneToday = habitData.completed
           } else if (habit.type === "number") {
             isDoneToday = habitData.value >= (habit.target || 1)
           }
-          // Create habit cell
+
+          // Habit cell
           let cellDiv = document.createElement("div")
           cellDiv.className = "habit-cell"
           if (!applicable) cellDiv.classList.add("not-applicable")
           if (isDoneToday && applicable) cellDiv.classList.add("done-today")
+
+          // Make checkbox habit cell clickable to toggle done/undone
+          if (habit.type === "checkbox" && applicable) {
+            cellDiv.classList.add("clickable") // Optional for cursor styling
+            cellDiv.onclick = async function () {
+              const todayKey = getDateKey(date)
+              if (!allHabitLogs[todayKey]) allHabitLogs[todayKey] = {}
+              if (!allHabitLogs[todayKey][habit.id])
+                allHabitLogs[todayKey][habit.id] = {}
+              let curr = !!allHabitLogs[todayKey][habit.id].completed
+              allHabitLogs[todayKey][habit.id].completed = !curr
+              await saveData(allHabitLogs[todayKey], date)
+              renderHabits(date)
+              updateStats(date)
+            }
+          }
+
           // Health gauge
           let gaugeCol = document.createElement("div")
           gaugeCol.className = "health-gauge-col"
@@ -683,23 +745,60 @@
           }
           gaugeHTML += "</div>"
           gaugeCol.innerHTML = gaugeHTML
-          // Habit info
-          let infoDiv = document.createElement("div")
-          infoDiv.innerHTML = `
-      <div class="habit-name">${habit.name}</div>
-      <div class="habit-schedule">${getScheduleLabel(habit.schedule)}</div>
-    `
-          // Chart button
-          let chartButtonHTML = habit.type
-            ? `<button class='habit-chart-btn' onclick='showChartModal(${habit.id})'>📊</button>`
-            : ""
-          cellDiv.appendChild(gaugeCol)
-          cellDiv.appendChild(infoDiv)
-          if (chartButtonHTML) {
-            let chartBtn = document.createElement("div")
-            chartBtn.innerHTML = chartButtonHTML
-            cellDiv.appendChild(chartBtn)
+
+          // Habit title
+          let titleDiv = document.createElement("div")
+          titleDiv.className = "habit-name"
+          titleDiv.textContent = habit.name
+
+          // Sleep input (for number habits, i.e. 'sleeping hours')
+          let inputDiv = null
+          if (habit.type === "number" && applicable) {
+            inputDiv = document.createElement("input")
+            inputDiv.type = "number"
+            inputDiv.className = "habit-input"
+            inputDiv.placeholder = "Hours"
+            inputDiv.value = habitData.value || ""
+            inputDiv.onchange = async function (e) {
+              const val = parseFloat(e.target.value) || 0
+              const todayKey = getDateKey(date)
+              if (!allHabitLogs[todayKey]) allHabitLogs[todayKey] = {}
+              if (!allHabitLogs[todayKey][habit.id])
+                allHabitLogs[todayKey][habit.id] = {}
+              allHabitLogs[todayKey][habit.id].value = val
+              await saveData(allHabitLogs[todayKey], date)
+              renderHabits(date)
+              updateStats(date)
+            }
           }
+
+          // Label + chart button row (side by side)
+          let rowDiv = document.createElement("div")
+          rowDiv.className = "label-chart-row"
+
+          // Schedule label
+          let labelSpan = document.createElement("span")
+          labelSpan.className = "habit-schedule"
+          labelSpan.textContent = getScheduleLabel(habit.schedule)
+
+          // Chart button
+          let chartBtn = document.createElement("button")
+          chartBtn.className = "habit-chart-btn"
+          chartBtn.textContent = "📊"
+          chartBtn.onclick = function (e) {
+            e.stopPropagation()
+            showChartModal(habit.id)
+          }
+
+          rowDiv.appendChild(labelSpan)
+          rowDiv.appendChild(chartBtn)
+
+          // Assemble cell
+          cellDiv.appendChild(gaugeCol)
+          cellDiv.appendChild(titleDiv)
+          if (inputDiv) cellDiv.appendChild(inputDiv)
+          cellDiv.appendChild(rowDiv)
+
           habitsList.appendChild(cellDiv)
         })
       }
