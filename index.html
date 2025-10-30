@@ -256,23 +256,6 @@
         margin-bottom: 8px; /* Preserves spacing above labels/input */
       }
 
-      /* Responsive tweaks for habit cell and gauge */
-      @media (max-width: 600px) {
-        .habit-cell {
-          padding: 7px 6px 12px 6px;
-        }
-        .health-bar {
-          width: 7px;
-          height: 12px;
-        }
-        .container {
-          padding: 10px;
-        }
-        .habit-name {
-          font-size: 0.9em;
-        }
-      }
-
       .habit-checkbox,
       .habit-input {
         accent-color: var(--earth-dark);
@@ -418,11 +401,12 @@
         height: 150px !important;
         max-width: 97vw;
       }
+
       @media (max-width: 600px) {
         .container {
           max-width: 100vw;
           border-radius: 0;
-          padding: 3px 0 28px 0;
+          padding: 10px;
           box-shadow: none;
         }
         .date-nav {
@@ -441,6 +425,18 @@
         h1,
         .current-date {
           font-size: 25px;
+        }
+
+        /* Responsive tweaks for habit cell and gauge */
+        .habit-cell {
+          padding: 7px 6px 12px 6px;
+        }
+        .health-bar {
+          width: 7px;
+          height: 12px;
+        }
+        .habit-name {
+          font-size: 0.9em;
         }
       }
     </style>
