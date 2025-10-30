@@ -712,20 +712,17 @@
         const todayKey = getDateKey(date)
         const data = allHabitLogs[todayKey] || {}
 
-        habits.forEach((habit) => {
-          const applicable = isHabitApplicable(habit, date)
-          const habitData = data[habit.id] || {}
+        habits
+          .filter((habit) => isHabitApplicable(habit, date))
+          .forEach((habit) => {
+            const habitData = data[habit.id] || {}
+            let isDoneToday = habitData.completed || false
 
-          let isDoneToday = habitData.completed || false
+            let cellDiv = document.createElement("div")
+            cellDiv.className = "habit-cell"
+            if (isDoneToday) cellDiv.classList.add("done-today")
 
-          // Habit cell setup
-          let cellDiv = document.createElement("div")
-          cellDiv.className = "habit-cell"
-          if (!applicable) cellDiv.classList.add("not-applicable")
-          if (isDoneToday && applicable) cellDiv.classList.add("done-today")
-
-          // Make cell clickable to toggle done/undone
-          if (applicable) {
+            // Click to toggle done/undone
             cellDiv.classList.add("clickable")
             cellDiv.onclick = async function () {
               const todayKey = getDateKey(date)
@@ -738,49 +735,48 @@
               renderHabits(date)
               updateStats(date)
             }
-          }
 
-          // Gauge bar
-          let gaugeCol = document.createElement("div")
-          gaugeCol.className = "health-gauge-col"
-          let bars = 7
-          let filled = countCheckedInPast7Days(habit, date)
-          let colorClass = gaugeColorClass(filled)
-          let gaugeHTML = '<div class="health-gauge">'
-          for (let i = 0; i < bars; i++) {
-            gaugeHTML += `<div class="health-bar ${
-              i < filled ? colorClass : ""
-            }"></div>`
-          }
-          gaugeHTML += "</div>"
-          gaugeCol.innerHTML = gaugeHTML
+            // Gauge bar
+            let gaugeCol = document.createElement("div")
+            gaugeCol.className = "health-gauge-col"
+            let bars = 7
+            let filled = countCheckedInPast7Days(habit, date)
+            let colorClass = gaugeColorClass(filled)
+            let gaugeHTML = '<div class="health-gauge">'
+            for (let i = 0; i < bars; i++) {
+              gaugeHTML += `<div class="health-bar ${
+                i < filled ? colorClass : ""
+              }"></div>`
+            }
+            gaugeHTML += "</div>"
+            gaugeCol.innerHTML = gaugeHTML
 
-          // Title, labels row
-          let titleDiv = document.createElement("div")
-          titleDiv.className = "habit-name"
-          titleDiv.textContent = habit.name
+            // Title, labels row
+            let titleDiv = document.createElement("div")
+            titleDiv.className = "habit-name"
+            titleDiv.textContent = habit.name
 
-          let rowDiv = document.createElement("div")
-          rowDiv.className = "label-chart-row"
-          let labelSpan = document.createElement("span")
-          labelSpan.className = "habit-schedule"
-          labelSpan.textContent = getScheduleLabel(habit.schedule)
-          let chartBtn = document.createElement("button")
-          chartBtn.className = "habit-chart-btn"
-          chartBtn.textContent = "📊"
-          chartBtn.onclick = function (e) {
-            e.stopPropagation()
-            showChartModal(habit.id)
-          }
-          rowDiv.appendChild(labelSpan)
-          rowDiv.appendChild(chartBtn)
+            let rowDiv = document.createElement("div")
+            rowDiv.className = "label-chart-row"
+            let labelSpan = document.createElement("span")
+            labelSpan.className = "habit-schedule"
+            labelSpan.textContent = getScheduleLabel(habit.schedule)
+            let chartBtn = document.createElement("button")
+            chartBtn.className = "habit-chart-btn"
+            chartBtn.textContent = "📊"
+            chartBtn.onclick = function (e) {
+              e.stopPropagation()
+              showChartModal(habit.id)
+            }
+            rowDiv.appendChild(labelSpan)
+            rowDiv.appendChild(chartBtn)
 
-          cellDiv.appendChild(gaugeCol)
-          cellDiv.appendChild(titleDiv)
-          cellDiv.appendChild(rowDiv)
+            cellDiv.appendChild(gaugeCol)
+            cellDiv.appendChild(titleDiv)
+            cellDiv.appendChild(rowDiv)
 
-          habitsList.appendChild(cellDiv)
-        })
+            habitsList.appendChild(cellDiv)
+          })
       }
 
       // ----------- STATS: PROGRESS & STREAK -------------
