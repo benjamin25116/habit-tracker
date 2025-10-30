@@ -16,10 +16,10 @@
         --earth-dark: #453927;
         --earth-light: #ffffff;
         --earth-success: #7fb285; /* slightly warmer green */
-        --earth-warn: #d1b08f;
+        --earth-warn: #da9958;
         --earth-gray: #d8d4d0;
         --earth-miss: #e4c8c3;
-        --earth-error: #b59d90;
+        --earth-error: #b86d6d;
       }
 
       /* General page */
@@ -447,12 +447,13 @@
   </head>
   <body>
     <div class="container">
-      <h1 onclick="jumpToToday()">🎯 Ben's Habit Tracker</h1>
+      <h1>🎯 Ben's Habit Tracker</h1>
       <div class="date-nav">
         <button onclick="changeDate(-1)">←</button>
         <div
           class="current-date"
           id="currentDate"
+          onclick="jumpToToday()"
         ></div>
         <button onclick="changeDate(1)">→</button>
         <!-- <button
